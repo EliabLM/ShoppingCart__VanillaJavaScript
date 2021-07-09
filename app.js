@@ -15,6 +15,10 @@ cards.addEventListener("click", (event) => {
 	addcarrito(event);
 });
 
+items.addEventListener("click", (event) => {
+	btnAccion(event);
+});
+
 const fetchData = async () => {
 	try {
 		const res = await fetch("./api.json");
@@ -88,4 +92,58 @@ const pintarCarrito = () => {
 		fragment.appendChild(clone);
 	});
 	items.appendChild(fragment);
+
+	pintarFooter();
+};
+
+const pintarFooter = () => {
+	footer.innerHTML = "";
+	if (Object.keys(carrito).length === 0) {
+		footer.innerHTML = `
+		<th scope="row" colspan="5">Carrito vacío - comience a comprar!</th>
+		`;
+		return;
+	}
+
+	const nCantidad = Object.values(carrito).reduce(
+		(acc, { cantidad }) => acc + cantidad,
+		0
+	);
+	const nPrecio = Object.values(carrito).reduce(
+		(acc, { cantidad, precio }) => acc + cantidad * precio,
+		0
+	);
+
+	templateFooter.querySelectorAll("td")[0].textContent = nCantidad;
+	templateFooter.querySelector("span").textContent = nPrecio;
+
+	const clone = templateFooter.cloneNode(true);
+	fragment.appendChild(clone);
+	footer.appendChild(fragment);
+
+	const btnVaciar = document.getElementById("vaciar-carrito");
+	btnVaciar.addEventListener("click", () => {
+		carrito = {};
+		pintarCarrito();
+	});
+};
+
+const btnAccion = (event) => {
+	if (event.target.classList.contains("btn-info")) {
+		const producto = carrito[event.target.dataset.id];
+		producto.cantidad++;
+		carrito[event.target.dataset.id] = { ...producto };
+		pintarCarrito();
+	}
+
+	if (event.target.classList.contains("btn-danger")) {
+		const producto = carrito[event.target.dataset.id];
+		producto.cantidad--;
+		if (producto.cantidad === 0) {
+			delete carrito[event.target.dataset.id];
+		}
+		pintarCarrito();
+	}
+
+	event.stopPropagation();
 };
